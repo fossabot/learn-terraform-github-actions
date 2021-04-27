@@ -1,1 +1,0 @@
-../global/terraform.auto.tfvars
