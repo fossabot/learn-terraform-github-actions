@@ -20,12 +20,13 @@ jobs:
           terraform_version: 0.15.1
 
       - name: Terraform Format
-        id: fmt
         run: terraform -chdir=backend fmt -check
 
       - name: Terraform Init
-        id: init
         run: terraform -chdir=backend init
+
+      - name: Terraform Plan
+        run: terraform plan -no-color
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
