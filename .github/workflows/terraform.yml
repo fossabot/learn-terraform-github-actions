@@ -26,7 +26,7 @@ jobs:
         run: terraform -chdir=backend init
 
       - name: Terraform Plan
-        run: terraform plan -no-color
+        run: terraform -chdir=backend plan -no-color
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/master' && github.event_name == 'push'
