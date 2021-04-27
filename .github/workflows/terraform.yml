@@ -7,8 +7,32 @@ on:
   pull_request:
 
 jobs:
-  terraform:
-    name: "Terraform"
+  terraform-backend:
+    name: "Terraform Backend"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.15.1
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform -chdir=backend fmt -check
+
+      - name: Terraform Init
+        id: init
+        run: terraform -chdir=backend init
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        run: terraform -chdir=backend apply -auto-approve
+
+  terraform-run:
+    name: "Terraform Run"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
