@@ -1,38 +1,25 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "3.26.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.0.1"
-    }
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  owners = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-*-*-amd64-server-*"]
   }
-  required_version = "~> 0.14"
 
-  backend "remote" {
-    organization = "REPLACE_ME"
-
-    workspaces {
-      name = "gh-actions-demo"
-    }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 }
-
-
-provider "aws" {
-  region = "us-west-2"
-}
-
-
-
-resource "random_pet" "sg" {}
 
 resource "aws_instance" "web" {
-  ami                    = "ami-830c94e3"
+  ami                    = data.aws_ami.ubuntu.id
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.web-sg.id]
+
+  subnet_id = module.vpc.public_subnets[0]
 
   user_data = <<-EOF
               #!/bin/bash
@@ -41,8 +28,12 @@ resource "aws_instance" "web" {
               EOF
 }
 
+resource "random_pet" "sg" {}
+
 resource "aws_security_group" "web-sg" {
-  name = "${random_pet.sg.id}-sg"
+  name   = "${random_pet.sg.id}-sg"
+  vpc_id = module.vpc.vpc_id
+
   ingress {
     from_port   = 8080
     to_port     = 8080
@@ -51,6 +42,10 @@ resource "aws_security_group" "web-sg" {
   }
 }
 
-output "web-address" {
-  value = "${aws_instance.web.public_dns}:8080"
+output "public_url" {
+  value = "http://${aws_instance.web.public_dns}:8080"
+}
+
+output "public_ip" {
+  value = aws_instance.web.public_ip
 }
