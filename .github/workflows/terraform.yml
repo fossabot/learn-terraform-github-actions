@@ -7,33 +7,7 @@ on:
   pull_request:
 
 jobs:
-  # terraform-backend:
-  #   name: "Terraform Backend"
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v1
-  #       with:
-  #         terraform_version: 0.15.1
-
-  #     - name: Terraform Format
-  #       run: terraform -chdir=backend fmt -check
-
-  #     - name: Terraform Init
-  #       run: terraform -chdir=backend init
-
-  #     - name: Terraform Plan
-  #       run: terraform -chdir=backend plan -no-color
-
-  #     - name: Terraform Apply
-  #       if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-  #       run: terraform -chdir=backend apply -auto-approve
-
   terraform-run:
-    # needs: terraform-backend
     name: "Terraform Run"
     runs-on: ubuntu-latest
     steps:
@@ -44,6 +18,17 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 0.15.1
+
+      - name: Setup AWS Credentials
+        run: |
+          # Setup credentials because everything in terraform is driven off profiles
+          mkdir -p .aws
+          echo "[playground]" > .aws/credentials
+          echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID_PLAYGROUND }}" >> .aws/credentials
+          echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY_PLAYGROUND }}" >> .aws/credentials
+          # echo "[production]" >> .aws/credentials
+          # echo "aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID_PRODUCTION }}" >> .aws/credentials
+          # echo "aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY_PRODUCTION }}" >> .aws/credentials
 
       - name: Terraform Format
         id: fmt
