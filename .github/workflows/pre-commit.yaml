@@ -1,0 +1,30 @@
+name: pre-commit hooks
+
+on:
+  push:
+
+jobs:
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Install pre-commit and dependencies
+        env:
+          ACCEPT_EULA: "Y"
+          TERRAFORM_VERSION: "0.14.8"
+          TERRAFORM_DOCS_VERSION: "v0.9.1"
+        run: |
+          sudo apt-get update -y && sudo apt-get install shellcheck --no-install-recommends -y
+          curl https://pre-commit.com/install-local.py | python -
+          mkdir -p $HOME/bin
+          curl -L "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" -o terraform.zip
+          unzip terraform.zip && rm terraform.zip
+          sudo mv terraform $HOME/bin
+          curl -L "https://github.com/terraform-docs/terraform-docs/releases/download/${TERRAFORM_DOCS_VERSION}/terraform-docs-${TERRAFORM_DOCS_VERSION}-$(uname | tr '[:upper:]' '[:lower:]')-amd64" -o $HOME/bin/terraform-docs
+          sudo chmod +x $HOME/bin/terraform-docs
+          curl -L "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest | grep -o -E "https://.+?_linux_amd64.zip")" -o tflint.zip && unzip tflint.zip && rm tflint.zip
+          sudo mv tflint $HOME/bin
+          echo "$HOME/bin" >> $GITHUB_PATH
+      - name: Run all pre-commit hooks on all files
+        run: pre-commit run --show-diff-on-failure --all-files
