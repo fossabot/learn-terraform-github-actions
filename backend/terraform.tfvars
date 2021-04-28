@@ -1,2 +1,2 @@
-region     = "eu-central-1"
-account    = "playground"
+region  = "eu-central-1"
+account = "playground"
