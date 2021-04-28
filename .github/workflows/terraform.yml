@@ -8,7 +8,6 @@ on:
 
 jobs:
   terraform-backend:
-    needs: pre-commit
     name: "Terraform Backend"
     runs-on: ubuntu-latest
     steps:
